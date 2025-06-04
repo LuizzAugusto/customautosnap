@@ -82,11 +82,11 @@ schedule () {
     verify_cron=$(crontab -l 2>/dev/null | grep ".* $SCRIPT_PATH execute $freq.*" || echo "")
 
     if [ -z "$verify_cron" ]; then
-        echo "adding cron job for $SCRIPT_PATH execute $freq"
+        echo "adding cron job for $SCRIPT_PATH execute $freq $maxn $with_home"
         (crontab -l 2>/dev/null; echo "$cron_freq $SCRIPT_PATH execute $freq $maxn $with_home") | crontab -
     else
         echo "overriding cron job for $SCRIPT_PATH execute $maxn $freq"
-        (sed "s\.* $SCRIPT_PATH execute .*\"$cron_freq $SCRIPT_PATH execute $freq $maxn $with_home\\" <(crontab -l)) | crontab -
+        (sed 's\.* '"$SCRIPT_PATH"' execute .*\"'"$cron_freq"' '"$SCRIPT_PATH"' execute '"$freq"' '"$maxn"' '"$with_home"'\' <(crontab -l)) | crontab -
     fi
 }
 
