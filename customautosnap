@@ -142,13 +142,22 @@ execute () {
     rm_old_snapshots "$suffix" "$maxn" "$snap_home"
 }
 
+rm_snapshot () {
+    subvol="$1"
+
+    if [ -z "$subvol" ]; then
+        echo "subvolume not defined"
+        exit 1
+    fi
+
+    btrfs subvolume delete "$subvol"
+}
+
 rm_old_snapshots () {
     # $suffix: (e.g., frequency or apt)
     suffix="$1"
     # $maxn: confirming if you want snap home (empty will not snapshot)
     maxn="$2"
-    # $rm_home: if you want to remove home snapshots (with-home or empty)
-    rm_home="$3"
 
     if [ -z "$suffix" ]; then
         echo "suffix not defined"
@@ -160,27 +169,26 @@ rm_old_snapshots () {
         exit 1
     fi
 
-    if [ -z "$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | wc -l)" ]; then
+    # Find matching snapshots
+    mapfile -t snaps < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort)
+    snap_count="${#snaps[@]}"
+
+    if [ "$snap_count" -le "$maxn" ]; then
         echo "no old snapshots found"
-        exit 0
+        return 0
     fi
 
     echo "deleting old snapshots, keeping only the last $maxn"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs rm -rf
+    to_delete_count=$(($snap_count - $maxn))
+    for ((i=0; i<to_delete_count; i++)); do
+        home_snap="${snaps[$i]}"'/'"${ROOT_PREFIX}"'/'"${HOME_PREFIX}"
 
-    if [ "$rm_home" != "with-home" ]; then
-        exit 0
-    fi
+        if [ -d "$home_snap" ]; then
+            rm_snapshot "$home_snap"
+        fi
 
-    echo "removing home snapshots..."
-
-    if [ -z "$(find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | wc -l)" ]; then
-        echo "no old home snapshots found"
-        exit 0
-    fi
-
-    echo "deleting old home snapshots, keeping only the last $maxn"
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs rm -rf
+        rm_snapshot "${snaps[$i]}"
+    done
 }
 
 apt_config () {
