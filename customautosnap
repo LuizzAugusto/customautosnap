@@ -23,7 +23,7 @@
 SNAP_DIR="/.snapshots"
 ROOT_PREFIX="@"
 HOME_PREFIX="@home"
-SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
+SCRIPT_PATH=$(command -v "$0")
 
 schedule () {
     # $freq: (e.g., frequency)
@@ -52,14 +52,14 @@ schedule () {
         *) echo "frequency not supported, use hourly, daily, weekly, monthly or yearly"; exit 1 ;;
     esac
 
-    verify_cron=$(crontab -l 2>/dev/null | grep ".* customautosnap execute $freq.*" || echo "")
+    verify_cron=$(crontab -l 2>/dev/null | grep ".* $SCRIPT_PATH execute $freq.*" || echo "")
 
     if [ -z "$verify_cron" ]; then
-        echo "adding cron job for customautosnap execute $freq"
-        (crontab -l 2>/dev/null; echo "$cron_freq customautosnap execute $freq $with_home") | crontab -
+        echo "adding cron job for $SCRIPT_PATH execute $freq"
+        (crontab -l 2>/dev/null; echo "$cron_freq $SCRIPT_PATH execute $freq $with_home") | crontab -
     else
-        echo "overriding cron job for customautosnap execute $freq"
-        (sed 's\.* customautosnap execute .*\'"$cron_freq"' customautosnap execute '"$freq"' '"$with_home"'\' <(crontab -l)) | crontab -
+        echo "overriding cron job for $SCRIPT_PATH execute $freq"
+        (sed "s\.* $SCRIPT_PATH execute .*\"$cron_freq $SCRIPT_PATH execute $freq $with_home\\" <(crontab -l)) | crontab -
     fi
 }
 
@@ -164,7 +164,7 @@ apt_config () {
         exit 1
     fi
 
-    sh -c "echo 'DPkg::Pre-Invoke { \"customautosnap execute apt $maxn\"; };' > /etc/apt/apt.conf.d/99customautosnap"
+    sh -c "echo 'DPkg::Pre-Invoke { \"$SCRIPT_PATH execute apt $maxn\"; };' > /etc/apt/apt.conf.d/99customautosnap"
     cat /etc/apt/apt.conf.d/99customautosnap
 }
 
