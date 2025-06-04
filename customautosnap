@@ -42,19 +42,14 @@ list () {
 
     echo "--- hourly ---"
     find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-hourly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-hourly" | sort
     echo "--- daily ---"
     find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-daily" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-daily" | sort
     echo "--- weekly ---"
     find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-weekly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-weekly" | sort
     echo "--- monthly ---"
     find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-monthly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-monthly" | sort
     echo "--- yearly ---"
     find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-yearly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-yearly" | sort
 }
 
 schedule () {
