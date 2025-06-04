@@ -83,10 +83,10 @@ schedule () {
 
     if [ -z "$verify_cron" ]; then
         echo "adding cron job for $SCRIPT_PATH execute $freq"
-        (crontab -l 2>/dev/null; echo "$cron_freq $SCRIPT_PATH execute $freq $with_home") | crontab -
+        (crontab -l 2>/dev/null; echo "$cron_freq $SCRIPT_PATH execute $freq $maxn $with_home") | crontab -
     else
-        echo "overriding cron job for $SCRIPT_PATH execute $freq"
-        (sed "s\.* $SCRIPT_PATH execute .*\"$cron_freq $SCRIPT_PATH execute $freq $with_home\\" <(crontab -l)) | crontab -
+        echo "overriding cron job for $SCRIPT_PATH execute $maxn $freq"
+        (sed "s\.* $SCRIPT_PATH execute .*\"$cron_freq $SCRIPT_PATH execute $freq $maxn $with_home\\" <(crontab -l)) | crontab -
     fi
 }
 
@@ -113,6 +113,11 @@ execute () {
 
     if [ -z "$suffix" ]; then
         help
+        exit 1
+    fi
+
+    if [ -z "$maxn" ]; then
+        echo "max number of snapshots not defined"
         exit 1
     fi
     
