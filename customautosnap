@@ -85,6 +85,24 @@ rm_old_snapshots () {
     find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs sudo rm -rf
 }
 
+apt_config () {
+    maxn="$1"
+
+    if [ -z "$maxn" ]; then
+        echo "max number of snapshots not defined"
+        exit 1
+    fi
+
+    if [ -z "$(apt --version 2>/dev/null)" ]; then
+        echo "apt not found, maybe you are not using debian or ubuntu?"
+        exit 1
+    fi
+
+    sudo sh -c "echo 'DPkg::Pre-Invoke { \"placeholder\"; };' > /etc/apt/apt.conf.d/99customautosnap"
+    sudo sed -i "s|placeholder|sudo sh -c 'customautosnap execute apt \&\& customautosnap rmold apt $maxn'|g" /etc/apt/apt.conf.d/99customautosnap
+    cat /etc/apt/apt.conf.d/99customautosnap
+}
+
 search_for_installer () {
     if [ -n "$(apt --version 2>/dev/null)" ]; then
         installer="apt"
@@ -150,6 +168,7 @@ shift
 case $option in
     execute) execute "$1" "$2" ;;
     rmold) rm_old_snapshots "$1" "$2" "$3" ;;
+    config-apt) apt_config "$1" ;;
     grub-btrfs) grub_btrfs "$1" "$2" ;;
     help) help ;;
     *) help; exit 1 ;;
