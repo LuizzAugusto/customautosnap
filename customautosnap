@@ -120,7 +120,7 @@ execute () {
         echo "max number of snapshots not defined"
         exit 1
     fi
-    
+
     if [ "$snap_home" = "with-home" ]; then
         home_verify=$(mount | grep " /home " | grep "btrfs")
 
@@ -130,7 +130,7 @@ execute () {
     fi
 
     DATE=$(date +%Y-%m-%d_%H-%M-%S)
-    
+
     btrfs subvolume snapshot "/" "${SNAP_DIR}/${ROOT_PREFIX}-${DATE}-${suffix}"
 
     if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
@@ -220,7 +220,7 @@ search_for_installer () {
         installarg="-S"
     else
         echo "installer not supported"
-        exit 1        
+        exit 1
     fi
 
     echo "$installer" "$installarg"
@@ -261,12 +261,13 @@ grub_btrfs () {
 }
 
 help () {
-    echo "execute <suffix> <with-home>          snapshot root and maybe home (used for mark the frequency or the installer)"
-    echo "rmold <suffix> <maxn> <with-home>     remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
-    echo "config-apt <maxn>                     configure apt to snapshot before install, keeping only the last maxn"
-    echo "sched <frequency> <maxn> <with-home>  schedule a snapshot with frequency, keeping only the last maxn (with-home or empty)"
-    echo "grub-btrfs <installer> <installarg>   install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
-    echo "help                                  show this message"
+    echo "list [<suffix>]			list snapshots, if suffix is defined, it will list only the snapshots with that suffix"
+    echo "execute <suffix> <maxn> <with-home>	snapshot root and maybe home (used for mark the frequency or the installer)"
+    echo "rmold <suffix> <maxn> <with-home>	remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
+    echo "config-apt <maxn>			configure apt to snapshot before install, keeping only the last maxn"
+    echo "sched <frequency> <maxn> <with-home>	schedule a snapshot with frequency, keeping only the last maxn (with-home or empty)"
+    echo "grub-btrfs <installer> <installarg>	install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
+    echo "help					show this message"
 }
 
 set -e
