@@ -5,9 +5,9 @@ ROOT_PREFIX="@"
 HOME_PREFIX="@home"
 
 execute () {
-    # $1: suffix (e.g., frequency or apt)
+    # $suffix: (e.g., frequency or apt)
     suffix="$1"
-    # $2: confirming if you want snap home (empty will not snapshot)
+    # $maxn: confirming if you want snap home (empty will not snapshot)
     snap_home="$2"
 
     root_verify=$(mount | grep " / " | grep "btrfs")
@@ -48,8 +48,11 @@ execute () {
 }
 
 rm_old_snapshots () {
+    # $suffix: (e.g., frequency or apt)
     suffix="$1"
+    # $maxn: confirming if you want snap home (empty will not snapshot)
     maxn="$2"
+    # $rm_home: if you want to remove home snapshots (with-home or empty)
     rm_home="$3"
 
     if [ -z "$suffix" ]; then
@@ -156,9 +159,11 @@ grub_btrfs () {
 }
 
 help () {
-    echo "execute <suffix> <with-home>	snapshot root and maybe home (used for mark the frequency or the installer)"
-    echo "grub-btrfs    	            install and configure grub-btrfs"
-    echo "help		                    show this message"
+    echo "execute <suffix> <with-home>          snapshot root and maybe home (used for mark the frequency or the installer)"
+    echo "rmold <suffix> <maxn> <with-home>     remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
+    echo "config-apt <maxn>                     configure apt to snapshot before install, keeping only the last maxn"
+    echo "grub-btrfs <installer> <installarg>   install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
+    echo "help		                            show this message"
 }
 
 set -e
