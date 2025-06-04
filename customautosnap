@@ -4,11 +4,65 @@ set -e
 option="$1"
 shift
 
+search_for_installer () {
+    if [ -n "$(apt --version 2>/dev/null)" ]; then
+        installer="apt"
+        installarg="install"
+    elif [ -n "$(dnf --version 2>/dev/null)" ]; then
+        installer=dnf
+        installarg="install"
+    elif [ -n "$(pacman --version 2>/dev/null)" ]; then
+        installer="pacman"
+        installarg="-S"
+    else
+        echo "installer not supported"
+        exit 1        
+    fi
+
+    echo "$installer" "$installarg"
+}
+
+grub_btrfs () {
+    installercmd="$1 $2"
+
+    if [ "$installercmd" = " " ]; then
+        installercmd="$(search_for_installer)"
+    elif [ -z "$2" ]; then
+        echo "defined installer '$1', but no install arg defined."
+        exit 1
+    fi
+
+    if [ -z "$installercmd" ]; then
+        echo "installer not supported"
+        exit 1
+    fi
+
+
+    while [ "$answer" != "Y" ] && [ "$answer" != "y" ] && [ "$answer" != "N" ] && [ "$answer" != "n" ]; do
+        echo "it will install make btrfs-progs gawk inotify-tools git, you want to continue? (Y/n)"
+        read answer
+    done
+
+    if [ "$answer" = "N" ] | [ "$answer" = "n" ]; then
+        echo "install aborted."
+        exit 1
+    fi
+
+    sudo sh -c "$installercmd make btrfs-progs gawk inotify-tools git -y"
+    git clone "https://github.com/antynea/grub-btrfs" /tmp/grub-btrfs
+    cd /tmp/grub-btrfs
+    sudo make install
+    cd ../
+    rm -rf /tmp/grub-btrfs
+}
+
 help () {
-    echo "help		show this message"
+    echo "grub-btrfs	install and configure grub-btrfs"
+    echo "help		    show this message"
 }
 
 case $option in
+    grub-btrfs) grub_btrfs "$1" "$2" ;;
     help) help ;;
     *) help; exit 1 ;;
 esac
