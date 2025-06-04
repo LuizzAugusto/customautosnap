@@ -9,6 +9,7 @@ execute () {
     suffix="$1"
     # $2: confirming if you want snap home (empty will not snapshot)
     snap_home="$2"
+
     root_verify=$(mount | grep " / " | grep "btrfs")
 
     if [ -z "$root_verify" ]; then
@@ -44,6 +45,44 @@ execute () {
     fi
 
     sudo sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
+}
+
+rm_old_snapshots () {
+    suffix="$1"
+    maxn="$2"
+    rm_home="$3"
+
+    if [ -z "$suffix" ]; then
+        echo "suffix not defined"
+        exit 1
+    fi
+
+    if [ -z "$maxn" ]; then
+        echo "max number of snapshots not defined"
+        exit 1
+    fi
+
+    if [ -z "$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | wc -l)" ]; then
+        echo "no old snapshots found"
+        exit 0
+    fi
+
+    echo "deleting old snapshots, keeping only the last $maxn"
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs sudo rm -rf
+
+    if [ "$rm_home" != "with-home" ]; then
+        exit 0
+    fi
+
+    echo "removing home snapshots..."
+
+    if [ -z "$(find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | wc -l)" ]; then
+        echo "no old home snapshots found"
+        exit 0
+    fi
+
+    echo "deleting old home snapshots, keeping only the last $maxn"
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs sudo rm -rf
 }
 
 search_for_installer () {
@@ -110,6 +149,7 @@ shift
 
 case $option in
     execute) execute "$1" "$2" ;;
+    rmold) rm_old_snapshots "$1" "$2" "$3" ;;
     grub-btrfs) grub_btrfs "$1" "$2" ;;
     help) help ;;
     *) help; exit 1 ;;
