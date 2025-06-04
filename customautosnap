@@ -23,6 +23,45 @@
 SNAP_DIR="/.snapshots"
 ROOT_PREFIX="@"
 HOME_PREFIX="@home"
+SCRIPT_PATH="$(dirname "$(readlink -f "$0")")"
+
+schedule () {
+    # $freq: (e.g., frequency)
+    freq="$1"
+    # $maxn: confirming if you want snap home (empty will not snapshot)
+    maxn="$2"
+    # $with_home: if you want to snapshot home (with-home or empty)
+    with_home="$3"
+
+    if [ -z "$freq" ]; then
+        echo "frequency not defined"
+        exit 1
+    fi
+
+    if [ -z "$maxn" ]; then
+        echo "max number of snapshots not defined"
+        exit 1
+    fi
+
+    case "$freq" in
+        hourly)  cron_freq="0 * * * *" ;;      # every hour at minute 0
+        daily)   cron_freq="0 12 * * *" ;;     # every day at 12:00 (noon)
+        weekly)  cron_freq="0 12 * * 0" ;;     # every Sunday at 12:00 (noon)
+        monthly) cron_freq="0 12 1 * *" ;;     # first day of month at 12:00 (noon)
+        yearly)  cron_freq="0 12 1 1 *" ;;     # January 1st at 12:00 (noon)
+        *) echo "frequency not supported, use hourly, daily, weekly, monthly or yearly"; exit 1 ;;
+    esac
+
+    verify_cron=$(crontab -l 2>/dev/null | grep ".* customautosnap execute $freq.*" || echo "")
+
+    if [ -z "$verify_cron" ]; then
+        echo "adding cron job for customautosnap execute $freq"
+        (crontab -l 2>/dev/null; echo "$cron_freq customautosnap execute $freq $with_home") | crontab -
+    else
+        echo "overriding cron job for customautosnap execute $freq"
+        (sed 's\.* customautosnap execute .*\'"$cron_freq"' customautosnap execute '"$freq"' '"$with_home"'\' <(crontab -l)) | crontab -
+    fi
+}
 
 execute () {
     # $suffix: (e.g., frequency or apt)
@@ -204,6 +243,7 @@ if [ "$(id -u)" != "0" ]; then
         execute) user_not_root_error_msg ;;
         rmold) user_not_root_error_msg ;;
         config-apt) user_not_root_error_msg ;;
+        sched) user_not_root_error_msg ;;
         grub-btrfs) user_not_root_error_msg ;;
         help) help ;;
         *) help; exit 1 ;;
@@ -214,6 +254,7 @@ case $option in
     execute) execute "$1" "$2" "$3" ;;
     rmold) rm_old_snapshots "$1" "$2" "$3" ;;
     config-apt) apt_config "$1" ;;
+    sched) schedule "$1" "$2" "$3" ;;
     grub-btrfs) grub_btrfs "$1" "$2" ;;
     help) help ;;
     *) help; exit 1 ;;
