@@ -27,8 +27,10 @@ HOME_PREFIX="@home"
 execute () {
     # $suffix: (e.g., frequency or apt)
     suffix="$1"
+    # $maxn: 
+    maxn="$2"
     # $maxn: confirming if you want snap home (empty will not snapshot)
-    snap_home="$2"
+    snap_home="$3"
 
     root_verify=$(mount | grep " / " | grep "btrfs")
 
@@ -65,6 +67,8 @@ execute () {
     fi
 
     sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
+
+    rm_old_snapshots "$suffix" "$maxn" "$snap_home"
 }
 
 rm_old_snapshots () {
@@ -121,8 +125,7 @@ apt_config () {
         exit 1
     fi
 
-    sh -c "echo 'DPkg::Pre-Invoke { \"placeholder\"; };' > /etc/apt/apt.conf.d/99customautosnap"
-    sed -i "s|placeholder|sudo sh -c 'customautosnap execute apt \&\& customautosnap rmold apt $maxn'|g" /etc/apt/apt.conf.d/99customautosnap
+    sh -c "echo 'DPkg::Pre-Invoke { \"customautosnap execute apt $maxn\"; };' > /etc/apt/apt.conf.d/99customautosnap"
     cat /etc/apt/apt.conf.d/99customautosnap
 }
 
@@ -208,7 +211,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 case $option in
-    execute) execute "$1" "$2" ;;
+    execute) execute "$1" "$2" "$3" ;;
     rmold) rm_old_snapshots "$1" "$2" "$3" ;;
     config-apt) apt_config "$1" ;;
     grub-btrfs) grub_btrfs "$1" "$2" ;;
