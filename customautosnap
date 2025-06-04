@@ -122,7 +122,7 @@ execute () {
         exit 1
     fi
     
-    if [ "$snap_home" == "with-home" ]; then
+    if [ "$snap_home" = "with-home" ]; then
         home_verify=$(mount | grep " /home " | grep "btrfs")
 
         if [ -n "$home_verify" ]; then
