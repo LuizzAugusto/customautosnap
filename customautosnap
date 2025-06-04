@@ -29,33 +29,32 @@ list () {
     freq="$1"
 
     if [ -n "$freq" ]; then
-        result=$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$freq" | wc -l)
+        result=$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-$freq" | wc -l)
 
         if [ -z "$result" ]; then
             echo "no result $freq snapshots found"
             exit 0
         fi
 
-        find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$freq" | sort
-        find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$freq" | sort
+        find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-$freq" | sort
         exit 0
     fi
 
     echo "--- hourly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-hourly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-hourly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-hourly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-hourly" | sort
     echo "--- daily ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-daily" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-daily" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-daily" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-daily" | sort
     echo "--- weekly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-weekly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-weekly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-weekly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-weekly" | sort
     echo "--- monthly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-monthly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-monthly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-monthly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-monthly" | sort
     echo "--- yearly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-yearly" | sort
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-yearly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-yearly" | sort
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}*-yearly" | sort
 }
 
 schedule () {
