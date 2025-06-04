@@ -1,0 +1,14 @@
+#! /usr/bin/bash
+
+set -e
+option="$1"
+shift
+
+help () {
+    echo "help		show this message"
+}
+
+case $option in
+    help) help ;;
+    *) help; exit 1 ;;
+esac
