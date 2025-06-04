@@ -183,7 +183,7 @@ help () {
     echo "rmold <suffix> <maxn> <with-home>     remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
     echo "config-apt <maxn>                     configure apt to snapshot before install, keeping only the last maxn"
     echo "grub-btrfs <installer> <installarg>   install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
-    echo "help		                            show this message"
+    echo "help                                  show this message"
 }
 
 set -e
