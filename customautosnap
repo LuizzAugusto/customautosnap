@@ -58,13 +58,13 @@ execute () {
 
     DATE=$(date +%Y-%m-%d_%H-%M-%S)
     
-    sudo btrfs subvolume snapshot "/" "${SNAP_DIR}/${ROOT_PREFIX}-${DATE}-${suffix}"
+    btrfs subvolume snapshot "/" "${SNAP_DIR}/${ROOT_PREFIX}-${DATE}-${suffix}"
 
     if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
-        sudo btrfs subvolume snapshot "/home" "${SNAP_DIR}/${HOME_PREFIX}-${DATE}-${suffix}"
+        btrfs subvolume snapshot "/home" "${SNAP_DIR}/${HOME_PREFIX}-${DATE}-${suffix}"
     fi
 
-    sudo sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
+    sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
 }
 
 rm_old_snapshots () {
@@ -91,7 +91,7 @@ rm_old_snapshots () {
     fi
 
     echo "deleting old snapshots, keeping only the last $maxn"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs sudo rm -rf
+    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs rm -rf
 
     if [ "$rm_home" != "with-home" ]; then
         exit 0
@@ -105,7 +105,7 @@ rm_old_snapshots () {
     fi
 
     echo "deleting old home snapshots, keeping only the last $maxn"
-    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs sudo rm -rf
+    find "$SNAP_DIR" -maxdepth 1 -name "${HOME_PREFIX}-*-$suffix" | sort | head -n -"$maxn" | xargs rm -rf
 }
 
 apt_config () {
@@ -121,8 +121,8 @@ apt_config () {
         exit 1
     fi
 
-    sudo sh -c "echo 'DPkg::Pre-Invoke { \"placeholder\"; };' > /etc/apt/apt.conf.d/99customautosnap"
-    sudo sed -i "s|placeholder|sudo sh -c 'customautosnap execute apt \&\& customautosnap rmold apt $maxn'|g" /etc/apt/apt.conf.d/99customautosnap
+    sh -c "echo 'DPkg::Pre-Invoke { \"placeholder\"; };' > /etc/apt/apt.conf.d/99customautosnap"
+    sed -i "s|placeholder|sudo sh -c 'customautosnap execute apt \&\& customautosnap rmold apt $maxn'|g" /etc/apt/apt.conf.d/99customautosnap
     cat /etc/apt/apt.conf.d/99customautosnap
 }
 
@@ -170,10 +170,10 @@ grub_btrfs () {
         exit 1
     fi
 
-    sudo sh -c "$installercmd make btrfs-progs gawk inotify-tools git -y"
+    sh -c "$installercmd make btrfs-progs gawk inotify-tools git -y"
     git clone "https://github.com/antynea/grub-btrfs" /tmp/grub-btrfs
     cd /tmp/grub-btrfs
-    sudo make install
+    make install
     cd ../
     rm -rf /tmp/grub-btrfs
 }
@@ -182,6 +182,7 @@ help () {
     echo "execute <suffix> <with-home>          snapshot root and maybe home (used for mark the frequency or the installer)"
     echo "rmold <suffix> <maxn> <with-home>     remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
     echo "config-apt <maxn>                     configure apt to snapshot before install, keeping only the last maxn"
+    echo "sched <frequency> <maxn> <with-home>  schedule a snapshot with frequency, keeping only the last maxn (with-home or empty)"
     echo "grub-btrfs <installer> <installarg>   install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
     echo "help                                  show this message"
 }
@@ -189,6 +190,22 @@ help () {
 set -e
 option="$1"
 shift
+
+user_not_root_error_msg () {
+    echo "You must run this script as root or with sudo."
+    exit 1
+}
+
+if [ "$(id -u)" != "0" ]; then
+    case $option in
+        execute) user_not_root_error_msg ;;
+        rmold) user_not_root_error_msg ;;
+        config-apt) user_not_root_error_msg ;;
+        grub-btrfs) user_not_root_error_msg ;;
+        help) help ;;
+        *) help; exit 1 ;;
+    esac
+fi
 
 case $option in
     execute) execute "$1" "$2" ;;
