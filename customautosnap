@@ -1,8 +1,50 @@
 #! /usr/bin/bash
 
-set -e
-option="$1"
-shift
+SNAP_DIR="/.snapshots"
+ROOT_PREFIX="@"
+HOME_PREFIX="@home"
+
+execute () {
+    # $1: suffix (e.g., frequency or apt)
+    suffix="$1"
+    # $2: confirming if you want snap home (empty will not snapshot)
+    snap_home="$2"
+    root_verify=$(mount | grep " / " | grep "btrfs")
+
+    if [ -z "$root_verify" ]; then
+        echo "root is not a subvolume"
+        exit 1
+    fi
+
+    snapshots_verify=$(mount | grep " $SNAP_DIR " | grep "btrfs")
+
+    if [ -z "$snapshots_verify" ]; then
+        echo "$SNAP_DIR not found, maybe is not a subvolume?"
+    fi
+
+    if [ -z "$suffix" ]; then
+        help
+        exit 1
+    fi
+    
+    if [ "$snap_home" == "with-home" ]; then
+        home_verify=$(mount | grep " /home " | grep "btrfs")
+
+        if [ -n "$home_verify" ]; then
+            answer="y"
+        fi
+    fi
+
+    DATE=$(date +%Y-%m-%d_%H-%M-%S)
+    
+    sudo btrfs subvolume snapshot "/" "${SNAP_DIR}/${ROOT_PREFIX}-${DATE}-${suffix}"
+
+    if [ "$answer" = "y" ] || [ "$answer" = "Y" ]; then
+        sudo btrfs subvolume snapshot "/home" "${SNAP_DIR}/${HOME_PREFIX}-${DATE}-${suffix}"
+    fi
+
+    sudo sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
+}
 
 search_for_installer () {
     if [ -n "$(apt --version 2>/dev/null)" ]; then
@@ -57,11 +99,17 @@ grub_btrfs () {
 }
 
 help () {
-    echo "grub-btrfs	install and configure grub-btrfs"
-    echo "help		    show this message"
+    echo "execute <suffix> <with-home>	snapshot root and maybe home (used for mark the frequency or the installer)"
+    echo "grub-btrfs    	            install and configure grub-btrfs"
+    echo "help		                    show this message"
 }
 
+set -e
+option="$1"
+shift
+
 case $option in
+    execute) execute "$1" "$2" ;;
     grub-btrfs) grub_btrfs "$1" "$2" ;;
     help) help ;;
     *) help; exit 1 ;;
