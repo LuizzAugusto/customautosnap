@@ -26,30 +26,30 @@ HOME_PREFIX="@home"
 SCRIPT_PATH=$(command -v "$0")
 
 list () {
+    # freq: (frequency of the cron job, e.g., hourly, daily, weekly, monthly, yearly)
     freq="$1"
 
     if [ -n "$freq" ]; then
-        result=$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-$freq" | wc -l)
+        # List all matching snapshots, sorted
+        mapfile -t roots < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$freq" | sort)
 
-        if [ -z "$result" ]; then
-            echo "no result $freq snapshots found"
-            exit 0
-        fi
+        for root in "${roots[@]}"; do
+            home=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root")
 
-        find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-$freq" | sort
+            echo "$root"
+
+            if [ -n "$home" ]; then
+                echo "$home"
+            fi
+        done
         exit 0
     fi
 
-    echo "--- hourly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-hourly" | sort
-    echo "--- daily ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-daily" | sort
-    echo "--- weekly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-weekly" | sort
-    echo "--- monthly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-monthly" | sort
-    echo "--- yearly ---"
-    find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}*-yearly" | sort
+    # If no frequency is given, repeat for each frequency
+    for freq in hourly daily weekly monthly yearly; do
+        echo "--- $freq ---"
+        "$FUNCNAME" "$freq"
+    done
 }
 
 schedule () {
