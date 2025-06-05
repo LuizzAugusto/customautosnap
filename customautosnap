@@ -150,7 +150,7 @@ rm_snapshot () {
         exit 1
     fi
 
-    btrfs subvolume delete "$subvol"
+    btrfs su del "$subvol"
 }
 
 rm_old_snapshots () {
@@ -181,13 +181,14 @@ rm_old_snapshots () {
     echo "deleting old snapshots, keeping only the last $maxn"
     to_delete_count=$(($snap_count - $maxn))
     for ((i=0; i<to_delete_count; i++)); do
-        home_snap="${snaps[$i]}"'/'"${ROOT_PREFIX}"'/'"${HOME_PREFIX}"
+        root_snap="${snaps[$i]}"
+        home_snap=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root_snap")
 
-        if [ -d "$home_snap" ]; then
+        if [ -n "$home_snap" ]; then
             rm_snapshot "$home_snap"
         fi
 
-        rm_snapshot "${snaps[$i]}"
+        rm_snapshot "$root_snap"
     done
 }
 
