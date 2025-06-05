@@ -41,6 +41,8 @@ list () {
             if [ -n "$home" ]; then
                 echo "$home"
             fi
+
+            echo ""
         done
         exit 0
     fi
