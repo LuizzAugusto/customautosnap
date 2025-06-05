@@ -29,10 +29,22 @@ list () {
     # suffix: (frequency of the cron job, e.g., hourly, daily, weekly, monthly, yearly or suffix of the installer, e.g., apt)
     # if no suffix is given, it will list all snapshots
     suffix="$1"
+    test=$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*")
+    
+    if [ -z "$test" ]; then
+        echo "no snapshots found"
+        exit 0
+    fi
 
     if [ -z "$suffix" ]; then
         # If no suffix is given, repeat for each suffix
         for suffix in hourly daily weekly monthly yearly apt; do
+            test=$(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix")
+
+            if [ -z "$test" ]; then
+                continue
+            fi
+
             echo "--- $suffix ---"
             echo ""
             "$FUNCNAME" "$suffix"
@@ -48,7 +60,7 @@ list () {
 
         echo "$root"
 
-        if [ -n "$home" ]; then
+        if [ -d "$home" ]; then
             echo "$home"
         fi
 
