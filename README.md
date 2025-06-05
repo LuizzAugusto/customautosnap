@@ -4,4 +4,4 @@ this a tool for ease create snapshot scheduling, integrate with installers (apt 
 
 ## Deps
 btrfs-progs
-make gawk inotify-tools git (for grub-btrfs)
+make gawk git (for grub-btrfs)

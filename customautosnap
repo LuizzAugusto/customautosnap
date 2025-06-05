@@ -243,7 +243,7 @@ grub_btrfs () {
 
 
     while [ "$answer" != "Y" ] && [ "$answer" != "y" ] && [ "$answer" != "N" ] && [ "$answer" != "n" ]; do
-        echo "it will install make btrfs-progs gawk inotify-tools git, you want to continue? (Y/n)"
+        echo "it will install make btrfs-progs gawk git, you want to continue? (Y/n)"
         read answer
     done
 
@@ -252,7 +252,7 @@ grub_btrfs () {
         exit 1
     fi
 
-    sh -c "$installercmd make btrfs-progs gawk inotify-tools git -y"
+    sh -c "$installercmd make btrfs-progs gawk git -y"
     git clone "https://github.com/antynea/grub-btrfs" /tmp/grub-btrfs
     cd /tmp/grub-btrfs
     make install
