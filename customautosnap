@@ -186,25 +186,26 @@ rm_old_snapshots () {
     fi
 
     # Find matching snapshots
-    mapfile -t snaps < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort)
-    snap_count="${#snaps[@]}"
+    mapfile -t snaps < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | head -n -"$maxn" | sort)
 
-    if [ "$snap_count" -le "$maxn" ]; then
+    if [ -z "$snaps" ]; then
         echo "no old snapshots found"
         return 0
     fi
 
     echo "deleting old snapshots, keeping only the last $maxn"
-    to_delete_count=$(($snap_count - $maxn))
-    for ((i=0; i<to_delete_count; i++)); do
-        root_snap="${snaps[$i]}"
-        home_snap=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root_snap")
+    for root in "${snaps[@]}"; do
+        home=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root")
 
-        if [ -n "$home_snap" ]; then
-            rm_snapshot "$home_snap"
+        if [ -d "$root" ]; then
+            echo "deleting $root"
+            rm_snapshot "$root"
         fi
 
-        rm_snapshot "$root_snap"
+        if [ -d "$home" ]; then
+            echo "deleting $home"
+            rm_snapshot "$home"
+        fi
     done
 }
 
