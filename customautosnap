@@ -26,31 +26,33 @@ HOME_PREFIX="@home"
 SCRIPT_PATH=$(command -v "$0")
 
 list () {
-    # freq: (frequency of the cron job, e.g., hourly, daily, weekly, monthly, yearly)
-    freq="$1"
+    # suffix: (frequency of the cron job, e.g., hourly, daily, weekly, monthly, yearly or suffix of the installer, e.g., apt)
+    # if no suffix is given, it will list all snapshots
+    suffix="$1"
 
-    if [ -n "$freq" ]; then
-        # List all matching snapshots, sorted
-        mapfile -t roots < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$freq" | sort)
-
-        for root in "${roots[@]}"; do
-            home=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root")
-
-            echo "$root"
-
-            if [ -n "$home" ]; then
-                echo "$home"
-            fi
-
+    if [ -z "$suffix" ]; then
+        # If no suffix is given, repeat for each suffix
+        for suffix in hourly daily weekly monthly yearly apt; do
+            echo "--- $suffix ---"
             echo ""
+            "$FUNCNAME" "$suffix"
         done
         exit 0
     fi
 
-    # If no frequency is given, repeat for each frequency
-    for freq in hourly daily weekly monthly yearly; do
-        echo "--- $freq ---"
-        "$FUNCNAME" "$freq"
+    # List all matching snapshots, sorted
+    mapfile -t roots < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort)
+
+    for root in "${roots[@]}"; do
+        home=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root")
+
+        echo "$root"
+
+        if [ -n "$home" ]; then
+            echo "$home"
+        fi
+
+        echo ""
     done
 }
 
