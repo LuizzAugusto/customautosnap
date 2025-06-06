@@ -153,7 +153,13 @@ execute () {
         btrfs subvolume snapshot "/home" "${SNAP_DIR}/${HOME_PREFIX}-${DATE}-${suffix}"
     fi
 
-    sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
+    if [ -f "/usr/sbin/grub-mkconfig" ]; then
+        grub_mkconfig="/usr/sbin/grub-mkconfig"
+    else
+        grub_mkconfig="/sbin/grub-mkconfig"
+    fi
+
+    sh -c 'exec '"$grub_mkconfig"' -o /boot/grub/grub.cfg "$@"'
 
     rm_old_snapshots "$suffix" "$maxn"
 }
@@ -185,10 +191,10 @@ rm_old_snapshots () {
         exit 1
     fi
 
-    # Find matching snapshots
-    mapfile -t snaps < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | head -n -"$maxn" | sort)
+    # Find matching snapshots, sort them chronologically, then select all but the newest few.
+    mapfile -t snaps < <(find "$SNAP_DIR" -maxdepth 1 -name "${ROOT_PREFIX}-*-$suffix" | sort | head -n -"$maxn")
 
-    if [ -z "$snaps" ]; then
+    if [ ${#snaps[@]} -eq 0 ]; then
         echo "no old snapshots found"
         return 0
     fi
