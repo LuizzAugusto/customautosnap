@@ -159,9 +159,9 @@ execute () {
         btrfs subvolume snapshot "/home" "${SNAP_DIR}/${HOME_PREFIX}-${DATE}-${suffix}"
     fi
 
-    sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
-
     rm_old_snapshots "$suffix" "$maxn"
+
+    sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
 }
 
 rm_snapshot () {
