@@ -98,15 +98,21 @@ schedule () {
     verify_cron=$(crontab -l 2>/dev/null | grep ".* $SCRIPT_PATH execute $freq.*" || echo "")
 
     if [ -z "$verify_cron" ]; then
-        echo "adding cron job for $SCRIPT_PATH execute $freq $maxn $with_home"
-        (crontab -l 2>/dev/null; echo "$cron_freq $SCRIPT_PATH execute $freq $maxn $with_home") | crontab -
+        echo 'adding cron job for $SCRIPT_PATH execute $freq $maxn "$with_home" "cron"'
+        (crontab -l 2>/dev/null; echo "$cron_freq $SCRIPT_PATH execute $freq $maxn \"$with_home\" \"cron\"") | crontab -
     else
         echo "overriding cron job for $SCRIPT_PATH execute $maxn $freq"
-        (sed 's\.* '"$SCRIPT_PATH"' execute .*\"'"$cron_freq"' '"$SCRIPT_PATH"' execute '"$freq"' '"$maxn"' '"$with_home"'\' <(crontab -l)) | crontab -
+        (sed -n 's|.* '"$SCRIPT_PATH"' execute '"$freq"'.*|'"$cron_freq"' '"$SCRIPT_PATH"' execute '"$freq"' '"$maxn"' '"\"$with_home\""' "cron"|p' <(crontab -l)) | crontab -
     fi
 }
 
 execute () {
+    # Ensure the script is run with the correct PATH
+    # This is important for cron jobs where the PATH may not include all necessary directories.
+    if [ "$4" = "cron" ]; then
+        PATH="/usr/sbin:/sbin:/usr/bin:/bin"
+    fi
+
     # $suffix: (e.g., frequency or apt)
     suffix="$1"
     # $maxn: 
@@ -153,13 +159,7 @@ execute () {
         btrfs subvolume snapshot "/home" "${SNAP_DIR}/${HOME_PREFIX}-${DATE}-${suffix}"
     fi
 
-    if [ -f "/usr/sbin/grub-mkconfig" ]; then
-        grub_mkconfig="/usr/sbin/grub-mkconfig"
-    else
-        grub_mkconfig="/sbin/grub-mkconfig"
-    fi
-
-    sh -c 'exec '"$grub_mkconfig"' -o /boot/grub/grub.cfg "$@"'
+    sh -c 'exec grub-mkconfig -o /boot/grub/grub.cfg "$@"'
 
     rm_old_snapshots "$suffix" "$maxn"
 }
@@ -319,7 +319,7 @@ case $option in
     execute) execute "$1" "$2" "$3" ;;
     rmold) rm_old_snapshots "$1" "$2" ;;
     config-apt) apt_config "$1" ;;
-    sched) schedule "$1" "$2" "$3" ;;
+    sched) schedule "$1" "$2" "$3" "$4" ;;
     grub-btrfs) grub_btrfs "$1" "$2" ;;
     help) help ;;
     *) help; exit 1 ;;
