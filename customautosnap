@@ -285,13 +285,13 @@ grub_btrfs () {
 }
 
 help () {
-    echo "list [<suffix>]			list snapshots, if suffix is defined, it will list only the snapshots with that suffix"
-    echo "execute <suffix> <maxn> <with-home>	snapshot root and maybe home (used for mark the frequency or the installer)"
-    echo "rmold <suffix> <maxn>		remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
-    echo "config-apt <maxn>			configure apt to snapshot before install, keeping only the last maxn"
-    echo "sched <frequency> <maxn> <with-home>	schedule a snapshot with frequency, keeping only the last maxn (with-home or empty)"
-    echo "grub-btrfs <installer> <installarg>	install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
-    echo "help					show this message"
+    echo "list [<suffix>]					list snapshots, if suffix is defined, it will list only the snapshots with that suffix"
+    echo "execute <suffix> <maxn> <with-home>		snapshot root and maybe home (used for mark the frequency or the installer)"
+    echo "rmold <suffix> <maxn>				remove old snapshots, keeping only the last maxn (used for mark the frequency or the installer)"
+    echo "config-apt <maxn>				configure apt to snapshot before install, keeping only the last maxn"
+    echo "sched <frequency> <maxn> <with-home>		schedule a snapshot with frequency, keeping only the last maxn (with-home or empty)"
+    echo "grub-btrfs <installer> <installarg>		install and configure grub-btrfs, if no installer is defined, it will search for apt, dnf or pacman"
+    echo "help						show this message"
 }
 
 set -e
