@@ -204,12 +204,10 @@ rm_old_snapshots () {
         home=$(sed -n "s|${ROOT_PREFIX}|${HOME_PREFIX}|p" <<< "$root")
 
         if [ -d "$root" ]; then
-            echo "deleting $root"
             rm_snapshot "$root"
         fi
 
         if [ -d "$home" ]; then
-            echo "deleting $home"
             rm_snapshot "$home"
         fi
     done
